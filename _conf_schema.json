@@ -8,8 +8,8 @@
   "model_id": {
     "description": "模型ID",
     "type": "string",
-    "hint": "输入模型ID，例如：grok-imagine-0.9",
-    "default": "grok-imagine-0.9"
+    "hint": "输入模型ID，例如：huan-grok-imagine-1.0-video",
+    "default": "huan-grok-imagine-1.0-video"
   },
   "api_key": {
     "description": "API密钥",
@@ -68,6 +68,12 @@
     "hint": "在时间窗口内允许的最大调用次数",
     "default": 5
   },
+  "group_task_limit": {
+    "description": "【队列限制】群聊同时进行的最大任务数",
+    "type": "int",
+    "hint": "限制每个群聊同时进行的视频生成任务数量，0表示不限制。建议设置为2-5，避免群聊被刷屏。",
+    "default": 2
+  },
   "save_video_enabled": {
     "description": "保留生成的视频文件",
     "type": "bool",
@@ -85,5 +91,41 @@
     "type": "int",
     "hint": "可选：配置 NapCat 文件中转服务端口",
     "default": 0
+  },
+  "enable_user_limit": {
+    "description": "【次数限制】是否启用用户次数限制",
+    "type": "bool",
+    "hint": "开启后，将根据用户的ID独立计算和限制视频生成次数。管理员不受限制。",
+    "default": true
+  },
+  "enable_checkin": {
+    "description": "【签到系统】是否开启每日签到功能",
+    "type": "bool",
+    "hint": "开启后，用户可使用「视频签到」命令获取视频生成次数。",
+    "default": true
+  },
+  "checkin_fixed_reward": {
+    "description": "【签到系统】固定签到奖励次数",
+    "type": "int",
+    "hint": "当[随机签到奖励]关闭时，用户每次签到获得的固定次数。",
+    "default": 2
+  },
+  "enable_random_checkin": {
+    "description": "【签到系统】是否开启随机签到奖励",
+    "type": "bool",
+    "hint": "开启后，签到奖励为最小值到最大值之间的随机数。关闭则使用固定奖励值。",
+    "default": false
+  },
+  "checkin_random_reward_min": {
+    "description": "【签到系统】随机签到奖励最小值",
+    "type": "int",
+    "hint": "当[随机签到奖励]开启时，用户签到可获得的最低次数。",
+    "default": 1
+  },
+  "checkin_random_reward_max": {
+    "description": "【签到系统】随机签到奖励最大值",
+    "type": "int",
+    "hint": "当[随机签到奖励]开启时，用户签到可获得的最高次数。",
+    "default": 3
   }
 }

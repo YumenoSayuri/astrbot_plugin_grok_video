@@ -1,11 +1,10 @@
 name: astrbot_plugin_grok_video
 description: 基于grok2api的图生视频插件
-version: 1.0.0
-author: ShiHao
-repo: https://github.com/lixin0229/astrbot_plugin_grok_video
+version: 1.2.0
+author: 辉宝
+repo: https://github.com/YumenoSayuri/astrbot_plugin_grok_video
 plugin_type: platform
 entry: main.py
 requirements:
   - httpx>=0.24.0
   - aiofiles>=23.0.0
-
