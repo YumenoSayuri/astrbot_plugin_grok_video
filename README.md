@@ -40,6 +40,7 @@ Grok2api搭建教程：https://github.com/chenyme/grok2api
 - **enable_checkin**: 是否开启每日签到功能（默认：true）
 - **checkin_fixed_reward**: 固定签到奖励次数（默认：2）
 - **enable_random_checkin**: 是否开启随机奖励（默认：false）
+- **user_count_cap**: 用户持有次数上限（默认：0，即不限制）。达到上限后签到不再增加，管理员手动增加也会截断到上限
 
 ### 其他配置
 - **enabled**: 启用/禁用功能（默认：true）
@@ -58,10 +59,10 @@ Grok2api搭建教程：https://github.com/chenyme/grok2api
 - 下载视频到 AstrBot Data 目录下的 `data/plugins/astrbot_plugin_grok_video/videos/`
 - `save_video_enabled=false` 时，发送成功后自动清理本地缓存
 
-## 版本信息
+## 更新日志
 
-- 版本：1.2.1
-- 作者：辉宝
-- 仓库：https://github.com/YumenoSayuri/astrbot_plugin_grok_video
+- **v1.2.2**: 新增「用户持有次数上限」(`user_count_cap`) 配置项，可限制用户最多可累积的次数，到达上限后签到不再增加。
+- **v1.2.1**: 适配SSE流式返回解析，修复长提示词无法触发命令的 Bug。
+- **v1.0.0**: 初始版本，支持基础的图文生成视频功能。
 
 Made by Nova for 辉宝主人 ❤

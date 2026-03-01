@@ -32,7 +32,7 @@ except ImportError:
         logger.warning("NapCat 文件转发模块未找到，将跳过 NapCat 中转功能")
 
 
-@register("grok-video", "辉宝", "Grok视频生成插件，支持根据图片和提示词生成视频，含次数限制与签到系统", "1.2.1")
+@register("grok-video", "辉宝", "Grok视频生成插件，支持根据图片和提示词生成视频，含次数限制与签到系统", "1.2.2")
 class GrokVideoPlugin(Star):
     def __init__(self, context: Context, config: dict):
         super().__init__(context)
@@ -105,6 +105,14 @@ class GrokVideoPlugin(Star):
         self.checkin_random_reward_min = max(1, int(config.get("checkin_random_reward_min", 1)))
         self.checkin_random_reward_max = max(self.checkin_random_reward_min, int(config.get("checkin_random_reward_max", 3)))
         
+        # 用户持有次数上限
+        try:
+            self.user_count_cap = max(0, int(config.get("user_count_cap", 0)))
+        except (TypeError, ValueError):
+            self.user_count_cap = 0
+        if self.user_count_cap > 0:
+            logger.info(f"GrokVideo: 用户持有次数上限设置为 {self.user_count_cap}")
+        
         # 用户次数和签到数据存储
         self.user_counts_file = self.plugin_data_dir / "user_video_counts.json"
         self.user_checkin_file = self.plugin_data_dir / "user_video_checkin.json"
@@ -176,10 +184,14 @@ class GrokVideoPlugin(Star):
             await self._save_user_counts()
 
     async def _increase_user_count(self, user_id: str, amount: int):
-        """增加用户次数"""
+        """增加用户次数（受上限限制）"""
         user_id_str = str(user_id)
         current_count = self._get_user_count(user_id_str)
-        self.user_counts[user_id_str] = current_count + amount
+        new_count = current_count + amount
+        # 如果设置了上限，截断到上限
+        if self.user_count_cap > 0 and new_count > self.user_count_cap:
+            new_count = self.user_count_cap
+        self.user_counts[user_id_str] = new_count
         await self._save_user_counts()
 
     # ==================== 签到数据管理方法 ====================
@@ -1175,6 +1187,12 @@ class GrokVideoPlugin(Star):
             yield event.plain_result(f"您今天已经签到过了。\n🎬 剩余视频生成次数: {remaining}")
             return
         
+        # 检查是否已达到持有上限
+        current_count = self._get_user_count(user_id)
+        if self.user_count_cap > 0 and current_count >= self.user_count_cap:
+            yield event.plain_result(f"📦 您的视频生成次数已存满（{current_count}/{self.user_count_cap}），无法继续累积。\n请先使用后再来签到哦~")
+            return
+        
         # 计算奖励
         reward = 0
         if self.enable_random_checkin:
@@ -1182,15 +1200,21 @@ class GrokVideoPlugin(Star):
         else:
             reward = self.checkin_fixed_reward
         
-        # 增加次数
+        # 增加次数（_increase_user_count 内部会处理上限截断）
+        old_count = current_count
         await self._increase_user_count(user_id, reward)
+        new_count = self._get_user_count(user_id)
+        actual_reward = new_count - old_count
         
         # 记录签到
         self.user_checkin_data[user_id] = today_str
         await self._save_user_checkin_data()
         
-        new_count = self._get_user_count(user_id)
-        yield event.plain_result(f"🎉 签到成功！获得视频生成 {reward} 次\n🎬 当前剩余次数: {new_count}")
+        if self.user_count_cap > 0 and new_count >= self.user_count_cap:
+            yield event.plain_result(f"🎉 签到成功！获得视频生成 {actual_reward} 次（已达上限 {self.user_count_cap}）\n🎬 当前剩余次数: {new_count}")
+        else:
+            cap_info = f"（上限 {self.user_count_cap}）" if self.user_count_cap > 0 else ""
+            yield event.plain_result(f"🎉 签到成功！获得视频生成 {reward} 次\n🎬 当前剩余次数: {new_count}{cap_info}")
 
     @filter.regex(r"^[#/!！]?视频次数\s*$")
     async def on_query_video_counts(self, event: AstrMessageEvent):
@@ -1260,7 +1284,8 @@ class GrokVideoPlugin(Star):
         
         await self._increase_user_count(target_qq, count)
         new_count = self._get_user_count(target_qq)
-        yield event.plain_result(f"✅ 已为用户 {target_qq} 增加 {count} 次视频生成次数\n🎬 该用户当前剩余: {new_count}")
+        cap_info = f"（上限 {self.user_count_cap}）" if self.user_count_cap > 0 else ""
+        yield event.plain_result(f"✅ 已为用户 {target_qq} 增加视频生成次数\n🎬 该用户当前剩余: {new_count}{cap_info}")
 
     async def terminate(self):
         """插件卸载时调用"""
