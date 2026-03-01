@@ -58,4 +58,10 @@ Grok2api搭建教程：https://github.com/chenyme/grok2api
 - 下载视频到 AstrBot Data 目录下的 `data/plugins/astrbot_plugin_grok_video/videos/`
 - `save_video_enabled=false` 时，发送成功后自动清理本地缓存
 
+## 版本信息
+
+- 版本：1.2.1
+- 作者：辉宝
+- 仓库：https://github.com/YumenoSayuri/astrbot_plugin_grok_video
+
 Made by Nova for 辉宝主人 ❤

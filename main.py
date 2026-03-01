@@ -32,7 +32,7 @@ except ImportError:
         logger.warning("NapCat 文件转发模块未找到，将跳过 NapCat 中转功能")
 
 
-@register("grok-video", "辉宝", "Grok视频生成插件，支持根据图片和提示词生成视频，含次数限制与签到系统", "1.2.0")
+@register("grok-video", "辉宝", "Grok视频生成插件，支持根据图片和提示词生成视频，含次数限制与签到系统", "1.2.1")
 class GrokVideoPlugin(Star):
     def __init__(self, context: Context, config: dict):
         super().__init__(context)
@@ -1010,17 +1010,16 @@ class GrokVideoPlugin(Star):
                 "error": f"启动视频生成任务失败: {str(e)}"
             }, ensure_ascii=False)
 
-    @filter.command("视频")
+    @filter.regex(r"^[#/!！]?视频\s")
     async def cmd_generate_video(self, event: AstrMessageEvent):
         """生成视频：/视频 <提示词>（需要包含图片）"""
-        # 完全从原始消息中提取提示词，不依赖框架的参数解析
-        # 这样可以兼容 LLM Executor 的调用方式
+        # 使用 regex 过滤器，不受 is_at_or_wake_command 限制，
+        # 长提示词也能稳定触发。
         raw_text = event.message_str if hasattr(event, 'message_str') else ""
         prompt = ""
         if raw_text:
-            # 使用正则去除命令前缀（支持 /视频 或 视频），保留后面的所有内容
-            # re.sub(pattern, repl, string, count=1) 只替换第一次出现的命令
-            extracted_prompt = re.sub(r'^/?视频\s*', '', raw_text, count=1).strip()
+            # 使用正则去除命令前缀（支持 /视频、#视频、!视频、！视频 或 视频），保留后面的所有内容
+            extracted_prompt = re.sub(r'^[#/!！]?视频\s*', '', raw_text, count=1).strip()
             if extracted_prompt:
                 prompt = extracted_prompt
         
